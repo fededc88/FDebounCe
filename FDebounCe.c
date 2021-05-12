@@ -1,7 +1,7 @@
 
-#include "Switches.h"
+#include "FDebounCe.h"
 
-SWnState Sw1, Sw2, Sw3, Sw4;
+SWn_Handler Sw[NUMBER_SWn]; 
 
 void Sw_app(void){
     
@@ -78,19 +78,6 @@ bool _Swn(int SelectedSw){
     return 0;
 }
 
-
-void Sw_Pin_Init(void){
-    
-    TRISAbits.TRISA2 = 1;
-    TRISAbits.TRISA3 = 1;
-    TRISAbits.TRISA4 = 1;
-    TRISBbits.TRISB4 = 1;
-    
-    return;
-    
-}
-
-
 void debouncingSwn(SWnState *pSwn, int n){
      
 //TODO: Convertir en Debouncing en una máquina de estado con Switch!
@@ -126,25 +113,23 @@ return;
 
 }
 
-void Sw_Init(void){
-    
-    Sw1.LastState = RELEASED;
-    Sw1.StateChange = 0;
-    Sw1.Ticks = DebounceTicks;
-    Sw1.TicksHold = DebounceTicksHold;
-            
-    Sw2.LastState = RELEASED;
-    Sw2.StateChange = 0;
-    Sw2.Ticks = DebounceTicks;
-    Sw2.TicksHold = DebounceTicksHold;
-    
-    Sw3.LastState = RELEASED;
-    Sw3.StateChange = 0;
-    Sw3.Ticks = DebounceTicks;
-    Sw3.TicksHold = DebounceTicksHold;
-    
-    Sw4.LastState = RELEASED;
-    Sw4.StateChange = 0;
-    Sw4.Ticks = DebounceTicks;
-    Sw4.TicksHold = DebounceTicksHold;
+/*
+ * function: FDebounCe_Sw_Init()
+ *
+ * input: none
+ * output: none
+ *
+ * description: Initialize Sw[n] handlers with default values
+ */
+void FDebounCe_Sw_Init(void){
+
+  uint8_t n; // Switch index
+
+  for(n = 0; n < NUMBER_SWn; n++){
+    Sw[n].LastState = RELEASED;
+    Sw[n].StateChange = NO_CHANGE;
+    Sw[n].Ticks = DEBOUNCE_TICKS;
+    Sw[n].TicksHold = DEBOUNCE_HOLD;
+  }
+  return;
 }
