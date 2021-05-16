@@ -14,6 +14,7 @@
 #ifndef __FDEBOUNCE_H__
 #define __FDEBOUNCE_H__
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -25,7 +26,7 @@
 #define DEBOUNCE_HOLD 1500 // 2,5 S
  
 // Define to get the LasState of a Sw[n]
-#define _Sw[a] Sw[a].LastState 
+#define _Sw(a) Sw[(a)].LastState 
 
 // Number of Switches
 // User should define the Sw number
@@ -35,7 +36,7 @@ typedef enum {
     SW_3,
     SW_4,
     SW_TOTAL
-} _Sw
+} _Sw;
 
 // Sw[n possible estates
 typedef enum{
@@ -43,12 +44,12 @@ typedef enum{
     RELEASED,
     PRESSED,
     HOLD,
-    }_KeyState;
+    } _KeyState;
 
 typedef enum{
   NO_CHANGED = 0,
   CHANGED  
-}_StateChanged;
+} _StateChanged;
 
 //
 // Sw[n] handler
@@ -57,16 +58,20 @@ typedef struct
 {
     _StateChanged StateChange;	// New event flag
     _KeyState LastState;	// Actual Sw[n] state 
-    void * call;		// Pointer to the function that return pin value
+    void (*call)(void);	// Pointer to the function that return pin value
     uint8_t Ticks;		// Number of Debounce Ticks
     uint16_t TicksHold;		// Number of ticks to HOLD
     uint8_t On_State;		// On value call() return
 
- } SWn_Handler; 
+ } Swn_Handler; 
  
  //Public Functions Declarations
- void Sw_app(void);
- _Bool _Swn(int);
-void debouncingSwn(SWnState *,int);
-void FDebounCe_Sw_Init(void);
+ void FDebounCe_app(void);
+// _Bool _Swn(int);
+void FDebounCe_debouncing(Swn_Handler *pSw[]);
+void FDebounCe_Sw_Init(Swn_Handler *pSw);
+
 #endif
+//
+// End of file.
+//
