@@ -18,10 +18,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-// Number of Switches
-// User should define the Sw number
-#define NUMBER_SWn 4
-
 // Number of Debounce Ticks the app count before change Sw[n] state to PRESSED 
 #define DEBOUNCE_TICKS 20  // 1 Tick = 1 mS
 
@@ -31,27 +27,40 @@
 // Define to get the LasState of a Sw[n]
 #define _Sw[a] Sw[a].LastState 
 
+// Number of Switches
+// User should define the Sw number
+typedef enum {
+    SW_1 = 0,
+    SW_2,
+    SW_3,
+    SW_4,
+    SW_TOTAL
+} _Sw
+
 // Sw[n possible estates
 typedef enum{
     IDLE = 0,
+    RELEASED,
     PRESSED,
     HOLD,
-    RELEASED
-}_KeyState;
+    }_KeyState;
 
 typedef enum{
   NO_CHANGED = 0,
   CHANGED  
 }_StateChanged;
 
+//
 // Sw[n] handler
-// Showld be defined one handler by Sw
+//
 typedef struct 
 {
-    _StateChanged StateChange;
-    _KeyState LastState;
-    uint8_t Ticks;
-    uint16_t TicksHold;
+    _StateChanged StateChange;	// New event flag
+    _KeyState LastState;	// Actual Sw[n] state 
+    void * call;		// Pointer to the function that return pin value
+    uint8_t Ticks;		// Number of Debounce Ticks
+    uint16_t TicksHold;		// Number of ticks to HOLD
+    uint8_t On_State;		// On value call() return
 
  } SWn_Handler; 
  
