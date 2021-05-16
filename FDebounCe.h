@@ -58,7 +58,7 @@ typedef struct
 {
     _StateChanged StateChange;	// New event flag
     _KeyState LastState;	// Actual Sw[n] state 
-    void (*call)(void);	// Pointer to the function that return pin value
+    uint8_t (*call)(void);	// Pointer to the function that return pin value
     uint8_t Ticks;		// Number of Debounce Ticks
     uint16_t TicksHold;		// Number of ticks to HOLD
     uint8_t On_State;		// On value call() return
