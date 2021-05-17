@@ -15,16 +15,14 @@
 #define __FDEBOUNCE_H__
 
 #include <stdint.h>
-#include <stdlib.h>
 #include <stdio.h>
-#include <stdbool.h>
 
 // Number of Debounce Ticks the app count before change Sw[n] state to PRESSED 
 #define DEBOUNCE_TICKS 20  // 1 Tick = 1 mS
 
 // Number of Bebounce Tick the app count before change Sw[n] State to HOLD
 #define DEBOUNCE_HOLD 1500 // 2,5 S
- 
+
 // Define to get the LasState of a Sw[n]
 #define _Sw(a) Sw[(a)].LastState 
 
@@ -44,31 +42,37 @@ typedef enum{
     RELEASED,
     PRESSED,
     HOLD,
-    } _KeyState;
+} _KeyState;
 
 typedef enum{
-  NO_CHANGED = 0,
-  CHANGED  
+    NO_CHANGED = 0,
+    CHANGED  
 } _StateChanged;
 
 //
-// Sw[n] handler
+// Sw[n] handler struct
 //
 typedef struct 
 {
     _StateChanged StateChange;	// New event flag
     _KeyState LastState;	// Actual Sw[n] state 
-    uint8_t (*call)(void);	// Pointer to the function that return pin value
+    uint8_t (*call)(_Sw);	// Pointer to the function that return pin value
     uint8_t Ticks;		// Number of Debounce Ticks
     uint16_t TicksHold;		// Number of ticks to HOLD
     uint8_t On_State;		// On value call() return
 
- } Swn_Handler; 
- 
- //Public Functions Declarations
- void FDebounCe_app(void);
-// _Bool _Swn(int);
-void FDebounCe_debouncing(Swn_Handler *pSw[]);
+} Swn_Handler; 
+
+//
+// Extern declarations
+//
+extern Swn_Handler Sw[SW_TOTAL]; 
+
+//
+//Public Functions Declarations
+//
+void FDebounCe_app(Swn_Handler *pSw);
+void FDebounCe_debouncing(Swn_Handler *pSw);
 void FDebounCe_Sw_Init(Swn_Handler *pSw);
 
 #endif

@@ -13,74 +13,60 @@ Swn_Handler Sw[SW_TOTAL];
 // imput: none
 // output: none
 //
-// descriotion: Proccess user's responses to switches acctions.
+// description: Proccess user's responses to switches acctions.
 // 
-void FDebounCe_app(void){
- /*   
-    char buff[60];
+void FDebounCe_app(Swn_Handler *pSwn)
+{
 
-    if (Sw1.StateChange == 1 && Sw1.LastState == PRESSED) {
-        Sw1.StateChange = 0;
-        sprintf(buff, "Sw1() PUSSHH!! \r\n");
-        SendStringPolling(buff);
-    }
-    if (Sw1.LastState == HOLD && Sw1.StateChange == 1) {
-        Sw1.StateChange = 0;
-        sprintf(buff, "Sw1() HOLD \r\n");
-        SendStringPolling(buff);
-    }
+    for(uint8_t n = SW_1; n < SW_TOTAL; n++, pSwn++)
+    {
+	if(pSwn->StateChange == CHANGED)
+	    pSwn->StateChange = NO_CHANGED;
+	switch(pSwn->LastState)
+	{
+	    case PRESSED:
+		printf("Sw%d() PUSSHH!! \r\n",n);
+		break;
+	    case HOLD:
+		printf("Sw%d() HOLD \r\n",n);
+		break;
+	    case RELEASED:
+		printf("Sw%d() RELEASED \r\n",n);
+		break;
 
-    if (Sw2.StateChange == 1 && Sw2.LastState == PRESSED) {
-        Sw2.StateChange = 0;
-        sprintf(buff, "Sw2() PUSSHH!! \r\n");
-        SendStringPolling(buff);
+	    default:
+		// Do nothing
+		break;
+	}
     }
-
-    if (Sw2.LastState == HOLD && Sw2.StateChange == 1) {
-        Sw2.StateChange = 0;
-        sprintf(buff, "Sw2() HOLD \r\n");
-        SendStringPolling(buff);
-    }
-
-    if (Sw3.StateChange == 1 && Sw3.LastState == PRESSED) {
-        Sw3.StateChange = 0;
-        sprintf(buff, "Sw3() PUSSHH!! \r\n");
-        SendStringPolling(buff);
-    }
-    if (Sw3.LastState == HOLD && Sw3.StateChange == 1) {
-        Sw3.StateChange = 0;
-        sprintf(buff, "Sw3() HOLD \r\n");
-        SendStringPolling(buff);
-    }
-
-    if (Sw4.StateChange == 1 && Sw4.LastState == PRESSED) {
-        Sw4.StateChange = 0;
-        sprintf(buff, "Sw4() PUSSHH!! \r\n");
-        SendStringPolling(buff);
-    }
-    if (Sw4.LastState == HOLD && Sw4.StateChange == 1) {
-        Sw4.StateChange = 0;
-        sprintf(buff, "Sw4() HOLD \r\n");
-        SendStringPolling(buff);
-    }
-*/    
-    
+    return;
 }
 
 /*
-uint8_t _Swn(int SelectedSw){
+ * funtion _Swn()
+ *
+ * imput: _Sw SelectedSw: Te switch number to be read
+ * outbut: uint8_t: the pins selected actual value
+ *
+ * description: returns the actual value of the SelectedSW.
+ *
+ * NOTE: Function should be defined by the user. Could be redefined in another
+ * location of the code. 
+ */
+
+uint8_t __attribute__((weak)) _Swn(_Sw SelectedSw){
     
     switch (SelectedSw){
-        case 1: 
+        case SW_1: 
           //   return PORTAbits.RA2;
              break;
-        case 2: 
+        case SW_2: 
            // return PORTAbits.RA3;
             break;
-        case 3: 
+        case SW_3: 
           //  return PORTBbits.RB4;
             break;
-        case 4:
+        case SW_4:
            // return PORTAbits.RA4;
             break;
         default:
@@ -89,7 +75,6 @@ uint8_t _Swn(int SelectedSw){
     }
     return 0;
 }
-*/
 
 //
 // function: FDebounCe_debouncing()
@@ -103,78 +88,77 @@ uint8_t _Swn(int SelectedSw){
 // NOTE: This function should be called in the timer handler which will
 // function as time base. 
 //
-void FDebounCe_debouncing(Swn_Handler *pSw[]){
+void FDebounCe_debouncing(Swn_Handler *pSw){
 
     uint8_t Swn_photo; // Saves switch state when read
     uint8_t n; // Switch index
 
     // Proccess every switch declared
-    for(n = 0; n < SW_TOTAL; n++){
+    for(n = 0; n < SW_TOTAL; n++, pSw++){
 	// Get switch state
-	Swn_photo = (uint8_t) pSw[n]->call();
+	Swn_photo = (uint8_t) pSw->call(n);
 
-	if(Swn_photo == pSw[n]->On_State){
+	if(Swn_photo == pSw->On_State){
 	    // Switch n is pressed! 
-	    switch(pSw[n]->LastState){
+	    switch(pSw->LastState){
 		case IDLE:
-		    pSw[n]->LastState = RELEASED;
+		    pSw->LastState = RELEASED;
 		case RELEASED:
-		    if(--pSw[n]->Ticks < 1)
+		    if(--pSw->Ticks < 1)
 		    {
-			pSw[n]->LastState = PRESSED; 
-			pSw[n]->StateChange = CHANGED;
-			pSw[n]->Ticks = DEBOUNCE_TICKS; 
+			pSw->LastState = PRESSED; 
+			pSw->StateChange = CHANGED;
+			pSw->Ticks = DEBOUNCE_TICKS; 
 		    }   
 		    break;
 
 		case PRESSED:
-		    if(--pSw[n]->TicksHold < 1)
+		    if(--pSw->TicksHold < 1)
 		    {
-			pSw[n]->LastState = HOLD; 
-			pSw[n]->StateChange = CHANGED;
-			pSw[n]->TicksHold = DEBOUNCE_HOLD; 
+			pSw->LastState = HOLD; 
+			pSw->StateChange = CHANGED;
+			pSw->TicksHold = DEBOUNCE_HOLD; 
 		    }
-		    pSw[n]->Ticks = DEBOUNCE_TICKS; // In case a bounce happens
+		    pSw->Ticks = DEBOUNCE_TICKS; // In case a bounce happens
 		    break;
 
 		case HOLD:
 		    // Do nothing
-		    pSw[n]->Ticks = DEBOUNCE_TICKS; // In case a bounce happens
+		    pSw->Ticks = DEBOUNCE_TICKS; // In case a bounce happens
 		    break;
 	    }	
 	}	
 	else {
 	    // Switch n is released or a bounce was produced!
-	    switch(pSw[n]->LastState){
+	    switch(pSw->LastState){
 
 		case PRESSED:
-		    if(--pSw[n]->Ticks < 1)
+		    if(--pSw->Ticks < 1)
 		    {
-			pSw[n]->LastState = RELEASED;
-			pSw[n]->StateChange = CHANGED;
-			pSw[n]->Ticks = DEBOUNCE_TICKS;
+			pSw->LastState = RELEASED;
+			pSw->StateChange = CHANGED;
+			pSw->Ticks = DEBOUNCE_TICKS;
 		    }
-		    pSw[n]->TicksHold = DEBOUNCE_HOLD; // In case a bounce happens
+		    pSw->TicksHold = DEBOUNCE_HOLD; // In case a bounce happens
 		    break;
 
 		case HOLD:
-		    if(--pSw[n]->Ticks < 1)
+		    if(--pSw->Ticks < 1)
 		    {
-			pSw[n]->LastState = RELEASED; 
-			pSw[n]->StateChange = CHANGED; 
-			pSw[n]->Ticks = DEBOUNCE_TICKS; 
+			pSw->LastState = RELEASED; 
+			pSw->StateChange = CHANGED; 
+			pSw->Ticks = DEBOUNCE_TICKS; 
 		    }
 		    break;
 
 		case RELEASED:
-		    pSw[n]->Ticks = DEBOUNCE_TICKS;  // In case a bounce happens
-		    pSw[n]->LastState = IDLE;
+		    pSw->Ticks = DEBOUNCE_TICKS;  // In case a bounce happens
+		    pSw->LastState = IDLE;
 		    break;
 
 		case IDLE:
 		    // Do Nothing
 		    break;
-
 	    }
 
 	}
@@ -182,6 +166,25 @@ void FDebounCe_debouncing(Swn_Handler *pSw[]){
 
     return;
 }
+
+/*
+ * function: FDebounce_load_default()
+ *
+ * imput: pSwn: Swn handler pointer
+ * output: uint8_t 1 if passed, 0 if failed
+ *
+ * description: Loads defaults values to a Swn handler
+ * 
+ */
+static uint8_t FDebounCe_load_default(Swn_Handler *pSwn)
+{
+    pSwn->LastState = IDLE;
+    pSwn->StateChange = NO_CHANGED;
+    pSwn->Ticks = DEBOUNCE_TICKS;
+    pSwn->TicksHold = DEBOUNCE_HOLD;
+    pSwn->call = &_Swn;
+}
+
 /*
  * function: FDebounCe_Sw_Init()
  *
@@ -192,17 +195,22 @@ void FDebounCe_debouncing(Swn_Handler *pSw[]){
  */
 void FDebounCe_Sw_Init(Swn_Handler *pSw){
 
-  uint8_t n; // Switch index
-  for(n = 0; n < SW_TOTAL; n++){
-    Sw[n].LastState = IDLE;
-    Sw[n].StateChange = NO_CHANGED;
-    Sw[n].Ticks = DEBOUNCE_TICKS;
-    Sw[n].TicksHold = DEBOUNCE_HOLD;
-}
-  return;
+    uint8_t n; // Switch index
+    Swn_Handler *pSwn;
+
+    if(pSw == NULL)
+    {
+	// Function is called with a NULL argument
+	pSwn = pSw; // Persist Handler pointer
+
+	for(n = 0; n < SW_TOTAL; n++, pSwn++){
+	    FDebounCe_load_default(pSwn);  // Load values by default
+	}
+    }
+    return;
+
 }
 
-void main (void) {
-
-    while(1){}
-}
+//
+// End of file.
+//
